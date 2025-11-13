@@ -1,0 +1,1 @@
+PS C:\Users\User\Desktop\040920frontend\frontend\app> uv run -m uvicorn main:app  --reload --port 9000 
