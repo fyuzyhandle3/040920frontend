@@ -1,4 +1,6 @@
-from fastapi import Request, APIRouter
+from fastapi import Request, APIRouter, Form, status
+from fastapi.responses import RedirectResponse
+import httpx
 
 from fastapi.templating import Jinja2Templates
 
@@ -19,14 +21,32 @@ async def index(request: Request):
 
     return response
 
+
 @router_user.get("/register")
-async def register(request: Request):
+@router_user.post("/register")
+async def register(request: Request, email: str = Form(''), username: str = Form(''), password: str = Form('')):
     context = {
         "request": request,
-        "title": "Головна сторінка сайту",
+        "title": "Register",
         "user": {}
     }
+    if request.method == "GET":
+        response = templates.TemplateResponse('pages/register.html', context=context)
+        return response
 
-    response = templates.TemplateResponse('pages/index.html', context=context)
+    async with httpx.AsyncClient() as client:
+        headers = {
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "email": email,
+            "name": username,
+            "password": password
+        }
+        response = await client.post("http://localhost:7000/users/create", json=payload, headers=headers)
 
+    response = RedirectResponse(request.url_for('index'), status_code=status.HTTP_303_SEE_OTHER)
     return response
+
+
+
